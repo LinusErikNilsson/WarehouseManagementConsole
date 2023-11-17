@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 using System.Data.SqlClient;
+using Models;
 
 
 class Program
@@ -9,7 +10,7 @@ class Program
     private static void Main(string[] args)
     {
 
-        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=test;Password=test;Database=test;");
+        IDbConnection sqldbconnection = new SqlConnection("Server=<server>;User=sa;Password=<password>;Database=<master>;");
 
         while (true)
         {
@@ -20,7 +21,7 @@ class Program
 
             Console.WriteLine("Please enter the key for an option in the menu below:");
 
-            Console.WriteLine("1. List all items located in the Warehouse");
+            Console.WriteLine("1. List all Materials");
             Console.WriteLine("2. Add an item to the Warehouse");
             Console.WriteLine("3. Remove an item in the Warehouse");
             Console.WriteLine("4. Add a new supplier");
@@ -35,7 +36,16 @@ class Program
                 case "1":
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("You have selected to list items in the Warehouse");
+                    Console.WriteLine("Listing all materials:");
+                    Console.WriteLine("----------------------------------------");
+
+                    IEnumerable<Material> result = sqldbconnection.Query<Material>("SELECT * FROM Material");
+
+                    foreach (Material material in result)
+                    {
+                        Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
+                    }
+
                     Console.ResetColor();
                     Console.ReadLine();
 
