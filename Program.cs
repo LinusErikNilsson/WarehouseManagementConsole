@@ -7,7 +7,7 @@ class Program
 {
     private static void Main(string[] args)
     {
-        IDbConnection sqldbconnection = new SqlConnection("Server=localhost;Database=warehouse;Trusted_Connection=True;");
+        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=test;Password=test;Database=test;");
 
         while (true)
         {
