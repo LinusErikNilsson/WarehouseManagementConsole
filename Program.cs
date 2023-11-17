@@ -1,7 +1,13 @@
-﻿internal class Program
+﻿using Dapper;
+using System.Data;
+using System.Data.SqlClient;
+
+
+class Program
 {
     private static void Main(string[] args)
     {
+        IDbConnection sqldbconnection = new SqlConnection("Server=localhost;Database=warehouse;Trusted_Connection=True;");
 
         while (true)
         {
