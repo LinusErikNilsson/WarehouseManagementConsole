@@ -11,7 +11,7 @@ class Program
     private static void Main(string[] args)
     {
 
-        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=sa;Password=apA123!#!;Database=master;");
+        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=sa;Password=apaAPA123;Database=master;");
 
         while (true)
         {
@@ -69,7 +69,7 @@ class Program
                             Console.ResetColor();
 
                             Console.Write("Please enter the name of the Material: ");
-                            string ?inputName = Console.ReadLine();
+                            string? inputName = Console.ReadLine();
                             bool isSuccessful = true;
 
                             try
@@ -77,7 +77,7 @@ class Program
                                 sqldbconnection.Execute("INSERT INTO Material (Name) VALUES (@Name)",
                                 new Material { Name = inputName });
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 isSuccessful = false;
                                 Console.WriteLine($"Error, could not complete request: {ex.Message}");
@@ -95,7 +95,7 @@ class Program
                             Console.WriteLine("Press any key to continue...");
                             break;
 
-                            case "3": // Update a Material
+                        case "3": // Update a Material
                             Console.Clear();
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Update a Material");
@@ -103,7 +103,7 @@ class Program
                             Console.ResetColor();
 
                             Console.Write("Please enter the name of the Material you want to update: ");
-                            string ?inputString = Console.ReadLine();
+                            string? inputString = Console.ReadLine();
 
                             IEnumerable<Material> updateMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
                                 new Material { Name = inputString });
@@ -127,14 +127,14 @@ class Program
                             Console.WriteLine();
 
                             Console.Write("Please enter the new name of the Material: ");
-                            string ?inputUpdatedMaterialName = Console.ReadLine();
+                            string? inputUpdatedMaterialName = Console.ReadLine();
 
                             sqldbconnection.Execute("UPDATE Material SET Name = @Name WHERE Id = @Id",
-                                new Material { Id = inputUpdatedMaterialId, Name = inputUpdatedMaterialName});
+                                new Material { Id = inputUpdatedMaterialId, Name = inputUpdatedMaterialName });
                             break;
 
 
-                            case "4": // Delete a Material
+                        case "4": // Delete a Material
                             Console.Clear();
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Delete a Material");
@@ -178,8 +178,8 @@ class Program
                     Console.Clear();
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. Add Material to Storage place");
-                    Console.WriteLine("2. ");
-                    Console.WriteLine("3. ");
+                    Console.WriteLine("2. List all Material in Storage");
+                    Console.WriteLine("3. List ");
                     Console.WriteLine("4. ");
 
                     switch (Console.ReadLine())
@@ -235,8 +235,32 @@ class Program
                             Console.Write("Material added successfully to Storage - Press any key to continue...");
                             Console.ReadKey();
 
+
+                            break;
+                        case "2":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Listing all materials in storage:");
+                            Console.WriteLine("----------------------------------------");
+
+                            IEnumerable<MaterialStorage> result = sqldbconnection.Query<MaterialStorage>("SELECT * FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id;");
+
+                            foreach (MaterialStorage materialStorage in result)
+                            {
+                                Console.WriteLine($"Id: {materialStorage.Id}  Aisle: {materialStorage.Aisle}  Shelf: {materialStorage.Shelf}  Material Name: {materialStorage.Name}  MaterialId: {materialStorage.MaterialId} Quantity: {materialStorage.Quantity}");
+                            }
+                            Console.ResetColor();
+                            Console.ReadLine();
+
+                            break;
+
+                        case "3":
+
+
                             break;
                     }
+
+
 
 
                     break;
@@ -270,7 +294,7 @@ class Program
                     Console.ReadLine();
                     break;
             }
-            
+
         }
 
 

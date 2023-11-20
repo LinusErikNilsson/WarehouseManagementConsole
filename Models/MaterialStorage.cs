@@ -12,7 +12,8 @@ namespace Models
         public int Aisle { get; set;}
         public int Shelf { get; set;}
         public int MaterialId { get; set;}
+        public string ?Name { get; set;}
         public int Quantity { get; set;}
-
+    
     }
 }
