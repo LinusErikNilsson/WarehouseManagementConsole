@@ -179,7 +179,7 @@ class Program
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. Add Material to Storage place");
                     Console.WriteLine("2. List all Material in Storage");
-                    Console.WriteLine("3. List ");
+                    Console.WriteLine("3. Move Material within Storage");
                     Console.WriteLine("4. ");
 
                     switch (Console.ReadLine())
@@ -255,8 +255,49 @@ class Program
                             break;
 
                         case "3":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Update a Material in Storage");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
 
+                            Console.Write("Please enter the name of the Material you want to update: ");
+                            string? inputUpdateMaterialStorage = Console.ReadLine();
 
+                            IEnumerable<MaterialStorage> updateMaterialStorageQuery = sqldbconnection.Query<MaterialStorage>("SELECT materialStorage.id, name, quantity, aisle, shelf FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id WHERE name LIKE '%' + @Name + '%' ",
+                                new MaterialStorage { Name = inputUpdateMaterialStorage });
+
+                            foreach (MaterialStorage materialStorage in updateMaterialStorageQuery)
+                            {
+                                Console.WriteLine($"Id: {materialStorage.Id} Name: {materialStorage.Name} Quantity: {materialStorage.Quantity}  Aisle: {materialStorage.Aisle}  Shelf: {materialStorage.Shelf}");
+                            }
+
+                            if (updateMaterialStorageQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No materials found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.WriteLine("Please the ID for the MaterialStorage you would like to change:");
+                            int inputUpdateMaterialStorageId = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the new Aisle:");
+                            int inputUpdatedMaterialAisle = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the new Shelf:");
+                            int inputUpdatedMaterialShelf = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the new Quantity:");
+                            int inputUpdatedMaterialQuantity = Convert.ToInt32(Console.ReadLine());
+
+                            sqldbconnection.Execute("UPDATE MaterialStorage SET Aisle = @Aisle, Shelf = @Shelf, Quantity = @Quantity WHERE Id = @MaterialId ",
+                            new MaterialStorage {MaterialId = inputUpdateMaterialStorageId, Aisle = inputUpdatedMaterialAisle, Shelf = inputUpdatedMaterialShelf, Quantity = inputUpdatedMaterialQuantity} );
+
+                            Console.WriteLine("Successfully updated. Press any key to continue.");
+                            Console.ReadLine();
                             break;
                     }
 
@@ -264,13 +305,13 @@ class Program
 
 
                     break;
-                case "3":
+                case "4":
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("You have selected to add a new order");
                     Console.ResetColor();
                     break;
-                case "4":
+                case "5":
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("You have selected to add a new supplier");
