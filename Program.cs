@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using Models;
+using System.ComponentModel;
 
 
 class Program
@@ -10,7 +11,7 @@ class Program
     private static void Main(string[] args)
     {
 
-        IDbConnection sqldbconnection = new SqlConnection("Server=<server>;User=sa;Password=<password>;Database=<master>;");
+        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=sa;Password=apA123!#!;Database=master;");
 
         while (true)
         {
@@ -21,8 +22,8 @@ class Program
 
             Console.WriteLine("Please enter the key for an option in the menu below:");
 
-            Console.WriteLine("1. List all Materials");
-            Console.WriteLine("2. Add an item to the Warehouse");
+            Console.WriteLine("1. Materials");
+            Console.WriteLine("2. MaterialStorage");
             Console.WriteLine("3. Remove an item in the Warehouse");
             Console.WriteLine("4. Add a new supplier");
             Console.WriteLine("q. Exit the program");
@@ -35,26 +36,198 @@ class Program
             {
                 case "1":
                     Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("Listing all materials:");
-                    Console.WriteLine("----------------------------------------");
+                    Console.WriteLine("Select an option");
+                    Console.WriteLine("1. List all Materials");
+                    Console.WriteLine("2. Add a new Material");
+                    Console.WriteLine("3. Update a Material");
+                    Console.WriteLine("4. Delete a Material");
 
-                    IEnumerable<Material> result = sqldbconnection.Query<Material>("SELECT * FROM Material");
-
-                    foreach (Material material in result)
+                    switch (Console.ReadLine())
                     {
-                        Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
-                    }
+                        case "1":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Listing all materials:");
+                            Console.WriteLine("----------------------------------------");
 
-                    Console.ResetColor();
-                    Console.ReadLine();
+                            IEnumerable<Material> result = sqldbconnection.Query<Material>("SELECT * FROM Material");
+
+                            foreach (Material material in result)
+                            {
+                                Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
+                            }
+
+                            Console.ResetColor();
+                            Console.ReadLine();
+                            break;
+
+                        case "2": // Add a new Material
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Add a new Material");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            Console.Write("Please enter the name of the Material: ");
+                            string ?inputName = Console.ReadLine();
+                            bool isSuccessful = true;
+
+                            try
+                            {
+                                sqldbconnection.Execute("INSERT INTO Material (Name) VALUES (@Name)",
+                                new Material { Name = inputName });
+                            }
+                            catch(Exception ex)
+                            {
+                                isSuccessful = false;
+                                Console.WriteLine($"Error, could not complete request: {ex.Message}");
+                            }
+                            finally
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                if (isSuccessful)
+                                {
+                                    Console.WriteLine("Material added successfully");
+                                }
+                                Console.ResetColor();
+                                Console.ReadLine();
+                            }
+                            Console.WriteLine("Press any key to continue...");
+                            break;
+
+                            case "3": // Update a Material
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Update a Material");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            Console.Write("Please enter the name of the Material you want to update: ");
+                            string ?inputString = Console.ReadLine();
+
+                            IEnumerable<Material> updateMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
+                                new Material { Name = inputString });
+
+                            foreach (Material material in updateMaterialQuery)
+                            {
+                                Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
+                            }
+
+                            if (updateMaterialQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No materials found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.Write("Please enter the Id you wish to update: ");
+                            int inputUpdatedMaterialId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the new name of the Material: ");
+                            string ?inputUpdatedMaterialName = Console.ReadLine();
+
+                            sqldbconnection.Execute("UPDATE Material SET Name = @Name WHERE Id = @Id",
+                                new Material { Id = inputUpdatedMaterialId, Name = inputUpdatedMaterialName});
+                            break;
+
+
+                            case "4": // Delete a Material
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Delete a Material");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            Console.Write("Please enter the name of the Material you want to update: ");
+                            string? inputMaterialDeleteString = Console.ReadLine();
+
+                            IEnumerable<Material> deleteMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
+                                new Material { Name = inputMaterialDeleteString });
+
+                            foreach (Material material in deleteMaterialQuery)
+                            {
+                                Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
+                            }
+
+                            if (deleteMaterialQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No materials found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.Write("Please enter the Id you wish to delete: ");
+                            int inputDeletedMaterialId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+                            Console.Clear();
+                            sqldbconnection.Execute("DELETE FROM Material WHERE Id = @Id",
+                                new Material { Id = inputDeletedMaterialId });
+                            Console.WriteLine("Material deleted successfully - Press any key to continue...");
+                            Console.ReadLine();
+
+                            break;
+                    }
 
                     break;
                 case "2":
                     Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("You have selected to add an item to the Warehouse");
-                    Console.ResetColor();
+                    Console.WriteLine("Select an option");
+                    Console.WriteLine("1. Add Material to Storage place");
+                    Console.WriteLine("2. ");
+                    Console.WriteLine("3. ");
+                    Console.WriteLine("4. ");
+
+                    switch (Console.ReadLine())
+                    {
+                        case "1":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Add Material to Storage place");
+                            Console.WriteLine("----------------------------------------");
+
+                            string? inputString = Console.ReadLine();
+
+                            IEnumerable<Material> updateMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
+                                new Material { Name = inputString });
+
+                            foreach (Material material in updateMaterialQuery)
+                            {
+                                Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
+                            }
+
+                            if (updateMaterialQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No materials found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.Write("Please enter the Id you wish to add to Storage: ");
+                            int inputMaterialId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Aisle you wish to add to Storage: ");
+                            int inputMaterialAisle = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Shelf you wish to add to Storage: ");
+                            int inputMaterialShelf = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Quantity you wish to add to Storage: ");
+                            int inputMaterialQuantity = Convert.ToInt32(Console.ReadLine());
+
+                            break;
+                    }
+
+
                     break;
                 case "3":
                     Console.Clear();
