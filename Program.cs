@@ -190,7 +190,11 @@ class Program
                             Console.WriteLine("Add Material to Storage place");
                             Console.WriteLine("----------------------------------------");
 
+                            Console.Write("Please enter the name of the material you want to add to search for it: ");
                             string? inputString = Console.ReadLine();
+                            Console.WriteLine();
+                            Console.WriteLine("Search result:");
+                            Console.WriteLine("----------------------------------------");
 
                             IEnumerable<Material> updateMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
                                 new Material { Name = inputString });
@@ -209,6 +213,7 @@ class Program
                                 break;
                             }
 
+                            Console.WriteLine();
                             Console.Write("Please enter the Id you wish to add to Storage: ");
                             int inputMaterialId = Convert.ToInt32(Console.ReadLine());
                             Console.WriteLine();
@@ -223,6 +228,12 @@ class Program
 
                             Console.Write("Please enter the Quantity you wish to add to Storage: ");
                             int inputMaterialQuantity = Convert.ToInt32(Console.ReadLine());
+
+                            sqldbconnection.Execute("INSERT INTO MaterialStorage (MaterialId, Aisle, Shelf, Quantity) VALUES (@MaterialId, @Aisle, @Shelf, @Quantity)",
+                                new MaterialStorage { MaterialId = inputMaterialId, Aisle = inputMaterialAisle, Shelf = inputMaterialShelf, Quantity = inputMaterialQuantity });
+                            Console.WriteLine();
+                            Console.Write("Material added successfully to Storage - Press any key to continue...");
+                            Console.ReadKey();
 
                             break;
                     }
