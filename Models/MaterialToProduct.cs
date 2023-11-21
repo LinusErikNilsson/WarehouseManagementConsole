@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public class ProductionQueue
+    public class MaterialToProduct
     {
-        public int id { get; set; }
         public int materialId { get; set; }
-        public int quantity { get; set; }
-        public int priority {  get; set; }
-
-        public string? name { get; set; }
+        public int productId { get; set; }
+        public string? productname { get; set; }
+        public string? materialname { get; set; }
     }
 }

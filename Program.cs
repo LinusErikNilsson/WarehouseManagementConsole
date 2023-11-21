@@ -392,7 +392,88 @@ class Program
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("Production");
+                    Console.WriteLine("----------------------------------------");
+
+
+                    Console.WriteLine("Select an option and press ENTER");
+
+                    Console.WriteLine("1. List all Materials Located in ProductionQueue (Inbound)");
+                    Console.WriteLine("2. Start Production of a product");
                     Console.ResetColor();
+                    Console.WriteLine();
+                    Console.Write("Your selection: ");
+
+                    switch(Console.ReadLine())
+                    {
+                        case "1": //List all Materials Located in ProductionQueue (Inbound)
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("List all Materials in ProductionQueue - INBOUND");
+                            Console.WriteLine("-------------------------------------------------");
+                            Console.ResetColor();
+
+                            IEnumerable<ProductionQueue> result = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id");
+
+                            foreach (ProductionQueue productionQueue in result)
+                            {
+                                Console.WriteLine($"Id: {productionQueue.id} MaterialId: {productionQueue.materialId} Quantity: {productionQueue.quantity} Priority: {productionQueue.priority} MaterialName: {productionQueue.name}");
+                            }
+                            Console.WriteLine();
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadLine();
+
+                            break;
+
+                            case "2": //Start Production of a product
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Start Production of a Product");
+                            Console.WriteLine("-------------------------------------------------");
+                            Console.WriteLine("Listing availible material at ProductionQueue: ");
+                            Console.WriteLine();
+                            Console.ResetColor();
+
+                            IEnumerable<ProductionQueue> productionQueueQuery = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id");
+
+                            foreach (ProductionQueue productionQueue in productionQueueQuery)
+                            {
+                                Console.WriteLine($"Id: {productionQueue.id} MaterialId: {productionQueue.materialId} Quantity: {productionQueue.quantity} Priority: {productionQueue.priority} MaterialName: {productionQueue.name}");
+                            }
+                            Console.WriteLine();
+                            Console.WriteLine("Please enter the ProductionQueueID of the Queued product you wish to start production on: ");
+                            int inputProductionQueueId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+
+                            IEnumerable<ProductionQueue> productionQueueQuery2 = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id WHERE ProductionQueue.id = @id",
+                                                               new ProductionQueue { id = inputProductionQueueId });
+
+                            int materialIdForProduction = productionQueueQuery2.Select(x => x.materialId).FirstOrDefault();
+                            int quantityForProduction = productionQueueQuery2.Select(x => x.quantity).FirstOrDefault();
+                            string? materialnameForProduction = productionQueueQuery2.Select(x => x.name).FirstOrDefault();
+
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine($"INFO | {materialnameForProduction} with Quantity {quantityForProduction} is selected for Production");
+                            Console.ResetColor();
+                            Console.WriteLine();
+                            Console.ReadLine();
+                            
+
+
+                            //Lista Produkter som använder materialet som kan tillverkas TODO/Review
+                            IEnumerable<MaterialToProduct> materialToProductQuery = sqldbconnection.Query<MaterialToProduct>("SELECT MaterialToProduct.ProductID, MaterialToProduct.MaterialID, Material.name, Product.Name FROM MaterialToProduct INNER JOIN Material ON MaterialToProduct.MaterialId = Material.Id INNER JOIN Product ON MaterialToProduct.ProductID = Product.Id WHERE MaterialToProduct.ProductId = @productId",
+                                                                                              new MaterialToProduct { productId = materialIdForProduction });
+
+                            foreach (MaterialToProduct materialToProduct in materialToProductQuery)
+                            {
+                                Console.WriteLine($"ProductID: {materialToProduct.productId} MaterialID: {materialToProduct.materialId} MaterialName: {materialToProduct.materialname} ProductName: {materialToProduct.productname}");
+                            };
+                            Console.ReadLine();
+
+                            //Skapa Nya Produkter
+
+                            break;
+                    }
+
                     break;
 
                 case "4": // Customer Order
