@@ -11,7 +11,7 @@ class Program
     private static void Main(string[] args)
     {
 
-        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=sa;Password=apaAPA123;Database=master;");
+        IDbConnection sqldbconnection = new SqlConnection("Server=localhost,1433;User=sa;Password=apA123!#!;Database=master;");
 
         while (true)
         {
@@ -20,7 +20,7 @@ class Program
             Console.WriteLine("Welcome to the Warehouse Management System");
             Console.WriteLine();
 
-            Console.WriteLine("Please enter the key for an option in the menu below:");
+            Console.WriteLine("Please enter the key for an option in the menu below, and press ENTER:");
 
             Console.WriteLine("1. Materials");
             Console.WriteLine("2. MaterialStorage");
@@ -37,11 +37,13 @@ class Program
             {
                 case "1": // Materials menu
                     Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. List all Materials");
                     Console.WriteLine("2. Add a new Material");
                     Console.WriteLine("3. Update a Material");
                     Console.WriteLine("4. Delete a Material");
+                    Console.ResetColor();
 
                     switch (Console.ReadLine())
                     {
@@ -50,6 +52,7 @@ class Program
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Listing all materials:");
                             Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
 
                             IEnumerable<Material> result = sqldbconnection.Query<Material>("SELECT * FROM Material");
 
@@ -58,7 +61,9 @@ class Program
                                 Console.WriteLine($"Id: {material.Id} Name: {material.Name}");
                             }
 
-                            Console.ResetColor();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine();
+                            Console.WriteLine("Press any key to continue...");
                             Console.ReadLine();
                             break;
 
@@ -91,9 +96,9 @@ class Program
                                     Console.WriteLine("Material added successfully");
                                 }
                                 Console.ResetColor();
-                                Console.ReadLine();
                             }
                             Console.WriteLine("Press any key to continue...");
+                            Console.ReadLine();
                             break;
 
                         case "3": // Update a Material
@@ -122,7 +127,7 @@ class Program
                                 Console.ReadLine();
                                 break;
                             }
-
+                            Console.WriteLine();
                             Console.Write("Please enter the Id you wish to update: ");
                             int inputUpdatedMaterialId = Convert.ToInt32(Console.ReadLine());
                             Console.WriteLine();
@@ -181,7 +186,8 @@ class Program
                     Console.WriteLine("1. Add Material to Storage place");
                     Console.WriteLine("2. List all Material in Storage");
                     Console.WriteLine("3. Move Material within Storage");
-                    Console.WriteLine("4. ");
+                    Console.WriteLine("4. Move Material to ProductionQueue");
+                    Console.WriteLine("5. Show Products in ProductStorage");
 
                     switch (Console.ReadLine())
                     {
@@ -244,7 +250,7 @@ class Program
                             Console.WriteLine("Listing all materials in storage:");
                             Console.WriteLine("----------------------------------------");
 
-                            IEnumerable<MaterialStorage> result = sqldbconnection.Query<MaterialStorage>("SELECT * FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id;");
+                            IEnumerable<MaterialStorage> result = sqldbconnection.Query<MaterialStorage>("SELECT MaterialStorage.id , MaterialStorage.Aisle, MaterialStorage.Shelf, MaterialStorage.Quantity, Material.id AS materialID, Material.name FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id;");
 
                             foreach (MaterialStorage materialStorage in result)
                             {
@@ -254,7 +260,7 @@ class Program
                             Console.ReadLine();
 
                             break;
-                        case "3":
+                        case "3": //Update a material in Storage
                             Console.Clear();
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Update a Material in Storage");
@@ -299,21 +305,275 @@ class Program
                             Console.WriteLine("Successfully updated. Press any key to continue.");
                             Console.ReadLine();
                             break;
+
+                            case "4": //Move Material to ProductionQueue
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Move Material to ProductionQueue");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            IEnumerable<MaterialStorage> moveMaterialQuery = sqldbconnection.Query<MaterialStorage>("SELECT MaterialStorage.id , MaterialStorage.Aisle, MaterialStorage.Shelf, MaterialStorage.Quantity, Material.id AS materialID, Material.name FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id");
+
+                            foreach (MaterialStorage materialstorage in moveMaterialQuery)
+                            {
+                                Console.WriteLine($"MaterialStorageID: {materialstorage.Id} Aisle: {materialstorage.Aisle} Shelf: {materialstorage.Shelf} MaterialID {materialstorage.MaterialId} MaterialName: {materialstorage.Name}  QTY: {materialstorage.Quantity}");
+                            }
+
+                            Console.WriteLine("Please enter the StorageID you wish to move to ProductionQueue: ");
+                            int inputStorageIdmove = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the MaterialID you wish to move to ProductionQueue: ");
+                            int inputMaterialIdmove = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the Quantity you wish to move to ProductionQueue: ");
+                            int inputQuantitymove = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the Priority level 1 to 3: ");
+                            int inputPrioritymove = Convert.ToInt32(Console.ReadLine());
+
+                            IEnumerable<MaterialStorage> checkQuantityQuery = sqldbconnection.Query<MaterialStorage>("SELECT MaterialStorage.id , MaterialStorage.Aisle, MaterialStorage.Shelf, MaterialStorage.Quantity, Material.id AS materialID, Material.name FROM MaterialStorage INNER JOIN Material ON MaterialStorage.MaterialId = Material.id WHERE MaterialStorage.id = @id",
+                                new MaterialStorage { Id = inputStorageIdmove });
+
+                            int quantityInMaterialStorage = checkQuantityQuery.Select(x => x.Quantity).FirstOrDefault();
+                            Console.WriteLine($" QTY in MaterialStorage: {quantityInMaterialStorage}");
+                            Console.WriteLine($" QTY to move: {inputQuantitymove}");
+
+                            if(inputQuantitymove > quantityInMaterialStorage)
+                            {
+                                Console.WriteLine("Error - Missing quantity in storage to proceed");
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            sqldbconnection.Execute("INSERT INTO ProductionQueue (MaterialId, Quantity, Priority) VALUES (@materialId, @quantity, @priority)",
+                                new ProductionQueue { materialId = inputMaterialIdmove, quantity = inputQuantitymove, priority = inputPrioritymove });
+
+                            Console.WriteLine("Material added to ProductionQueue");
+                            Console.ReadLine();
+
+                            if (inputQuantitymove == quantityInMaterialStorage)
+                            {
+                                sqldbconnection.Execute("DELETE FROM MaterialStorage WHERE Id = @Id",
+                                    new MaterialStorage { Id = inputStorageIdmove });
+                            }
+                            else
+                            {
+                                sqldbconnection.Execute("UPDATE MaterialStorage SET Quantity = Quantity - @Quantity WHERE Id = @Id",
+                                    new MaterialStorage { Id = inputStorageIdmove, Quantity = inputQuantitymove });
+                            }
+                            Console.ReadLine();
+                            break;
+
+                            case "5": //Show Products in ProductStorage
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Show all Products in ProductStorage");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            IEnumerable<ProductStorage> productStorageQuery = sqldbconnection.Query<ProductStorage>("SELECT ProductStorage.id, ProductStorage.Aisle, ProductStorage.Shelf, Product.Name, ProductStorage.Quantity FROM ProductStorage\r\n    INNER JOIN Product ON ProductStorage.ProductId = Product.Id;");
+
+                            foreach (ProductStorage productstorage in productStorageQuery)
+                            {
+                                Console.WriteLine($"ProductStorageID: {productstorage.Id} | Aisle: {productstorage.Aisle} | Shelf: {productstorage.Shelf}");
+                                Console.WriteLine($"ProductID {productstorage.ProductId} ProductName: {productstorage.Name}  QTY: {productstorage.Quantity}");
+                                Console.WriteLine();
+                            }
+                            Console.WriteLine();
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadLine();
+
+                            break;
                     }
 
                     break;
-                case "3": //
+                case "3": // Production
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("You have selected to add a new order");
+                    Console.WriteLine("Production");
                     Console.ResetColor();
                     break;
-                case "4": // 
+
+                case "4": // Customer Order
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("You have selected to add a new supplier");
+                    Console.WriteLine("CustomerOrder");
+                    Console.WriteLine("----------------------------------------");
+                    Console.WriteLine("Select an option");
+                    Console.WriteLine("1. Search for an Ordernumber/OrderID");
+                    Console.WriteLine("2. Add a new Customer Order");
+                    Console.WriteLine("3. Delete a Customer Order");
                     Console.ResetColor();
+
+                    switch(Console.ReadLine())
+                    {
+                        case "1":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Please enter a Ordernumber/OrderID.");
+                            
+                            //
+                            int inputCustomerOrderID = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine("----------------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            IEnumerable<ProductOrder_Customer> resultQueryCustomerOrder = sqldbconnection.Query<ProductOrder_Customer>("SELECT ProductOrder.Id, Customer.Surname, Customer.LastName, Customer.Phonenumber, ProductOrder.IsDelivered, ProductOrder.IsPacked, ProductOrder.IsSent FROM ProductOrder INNER JOIN Customer ON ProductOrder.CustomerId = Customer.Id WHERE ProductOrder.Id = @id;",
+                                                               new CustomerOrder { id = inputCustomerOrderID });
+
+                            IEnumerable<ProductToOrder_Product> resultQueryProductToOrder = sqldbconnection.Query<ProductToOrder_Product>("SELECT Id, ProductId, OrderId, OrderQuantity, Product.Name FROM ProductToOrder INNER JOIN Product ON ProductToOrder.ProductId =  Product.Id WHERE ProductToOrder.OrderId = @orderid",
+                                                                                              new ProductToOrder_Product { orderid = inputCustomerOrderID });
+
+                            foreach (ProductOrder_Customer productorder_customer in resultQueryCustomerOrder)
+                            {
+                                Console.WriteLine($"Ordernumber: {productorder_customer.id}");
+                                Console.WriteLine($"Name: {productorder_customer.Surname} {productorder_customer.Lastname} Phone: {productorder_customer.Phonenumber}");
+                                Console.WriteLine($"Status - Delivered: {productorder_customer.isDelivered} Sent: {productorder_customer.isSent} Packed: {productorder_customer.isPacked}");
+                            }
+
+                            if (resultQueryCustomerOrder.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No Customer Orders found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.WriteLine();
+                            Console.WriteLine("Products:");
+                            foreach (ProductToOrder_Product productToorder_product in resultQueryProductToOrder)
+                            {
+                                Console.WriteLine($" {productToorder_product.Name} Quantity: {productToorder_product.orderQuantity}");
+                            }
+                            Console.WriteLine("----------------------------------------------------------------------------------");
+;                            
+
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine();
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadLine();
+                            Console.ResetColor();
+
+                            break;
+
+                        case "2":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Create an Order");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            Console.Write("Please enter customer name: ");
+                            string? inputCustomerSurName = Console.ReadLine();
+
+
+                            IEnumerable<Customer> customerSearchQuery = sqldbconnection.Query<Customer>("SELECT id, surname, lastname, Address, Email, Phonenumber FROM Customer WHERE surname LIKE '%' + @Surname + '%'",
+                                                               new Customer { Surname = inputCustomerSurName });
+
+                            foreach (Customer customer in customerSearchQuery)
+                            {
+                                Console.WriteLine($"Id: {customer.Id} Surname: {customer.Surname} Lastname: {customer.Lastname} Address: {customer.Address} Phone: {customer.Phonenumber}");
+                            }
+
+                            Console.Write("Please enter your CustomerId: ");
+                            int inputCustomerId = Convert.ToInt32(Console.ReadLine());
+
+                            sqldbconnection.Execute("INSERT INTO ProductOrder (CustomerId, isPacked, isSent, isDelivered) VALUES (@CustomerId, @isPacked, @isSent, @isDelivered)",
+                                                               new CustomerOrder { customerid = inputCustomerId, isPacked = false, isSent = false, isDelivered = false });
+
+                            //Get a new OrderID from the Database
+                            IEnumerable<CustomerOrder> customerOrderSearchQuery = sqldbconnection.Query<CustomerOrder>("SELECT id FROM ProductOrder");
+                            int orderIdCount =  customerOrderSearchQuery.Count();
+
+                            bool addNewProduct = true;
+
+                            while(addNewProduct == true)
+                            {
+                                Console.Write("Please enter the name of the product you want to add: ");
+                                string? inputSearchQuery = Console.ReadLine();
+
+                                IEnumerable<Product> productSearchQuery = sqldbconnection.Query<Product>("SELECT id, name FROM Product WHERE name LIKE '%' + @Name + '%'",
+                                    new Product { Name = inputSearchQuery });
+
+                                foreach (Product product in productSearchQuery)
+                                {
+                                    Console.WriteLine($"Id: {product.Id} Name: {product.Name}");
+                                }
+
+                                if (productSearchQuery.Count() == 0)
+                                {
+                                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                    Console.WriteLine("No materials found");
+                                    Console.ResetColor();
+                                    Console.ReadLine();
+                                    break;
+                                }
+
+                                Console.Write("Please enter the Id you wish to add to the Order: ");
+                                int inputProductId = Convert.ToInt32(Console.ReadLine());
+
+                                Console.Write("Please enter the Quantity you wish to add to the Order: ");
+                                int inputProductQuantity = Convert.ToInt32(Console.ReadLine());
+
+                                sqldbconnection.Execute("INSERT INTO ProductToOrder (ProductID, OrderID, OrderQuantity) VALUES (@productid, @orderid, @orderQuantity)",
+                                    new ProductToOrder { productid = inputProductId, orderid = orderIdCount, orderQuantity = inputProductQuantity });
+
+                                Console.WriteLine();
+                                Console.Write("Product added successfully to Order");
+                                Console.WriteLine("Add another product by pressing key: N ");
+                                Console.WriteLine("Continue by pressing key: A");
+
+                                string? userSelection = Console.ReadLine();
+
+                                if (userSelection == "a")
+                                {
+                                    addNewProduct = false;
+                                }
+
+                            }
+
+                            Console.WriteLine();
+                            Console.Write("Order added successfully - Press any key to continue...");
+                            Console.ReadLine();
+                            break;
+
+                            case "3": //Delete Order
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Delete an Order");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            try
+                            {
+                                Console.WriteLine("Please enter Ordernumber: ");
+                                int inputOrderNumber = Convert.ToInt32(Console.ReadLine());
+
+                                sqldbconnection.Execute("DELETE FROM ProductToOrder WHERE OrderId = @orderid",
+                                    new ProductToOrder { orderid = inputOrderNumber });
+                                sqldbconnection.Execute("DELETE FROM ProductOrder WHERE Id = @id",
+                                    new CustomerOrder { id = inputOrderNumber });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error, could not complete request: {ex.Message}");
+                                Console.WriteLine("Press any key to continue");
+                                Console.ReadLine();
+                                break;
+                                
+                            }
+
+                            Console.WriteLine("Delete successful - press any key to continue");
+                            Console.ReadLine();
+
+                            break;
+
+                    }
                     break;
+
                 case "5": // Customer
                     Console.Clear();
                     Console.Clear();
@@ -364,7 +624,7 @@ class Program
                             Console.WriteLine();
 
                             Console.Write("Please enter the Phonenumber of your new customer: ");
-                            string inputPhonenumber = Console.ReadLine();
+                            string? inputPhonenumber = Console.ReadLine();
 
                             sqldbconnection.Execute("INSERT INTO Customer (Surname, Lastname, Address, Email, Phonenumber) VALUES (@Surname, @Lastname, @Address, @Email, @Phonenumber)",
                                 new Customer { Surname = inputSurName, Lastname = inputLastName, Address = inputAdress, Email = inputEmail, Phonenumber = inputPhonenumber });

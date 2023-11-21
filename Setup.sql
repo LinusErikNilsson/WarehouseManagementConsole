@@ -91,6 +91,8 @@ VALUES(1,1,1,0);
 --Product
 INSERT INTO Product(Name)
 VALUES('Stainless Nut');
+INSERT INTO Product(Name)
+VALUES('Iron Nut');
 
 --Customer
 INSERT INTO Customer(Surname, LastName, Address, Email, Phonenumber)
