@@ -69,14 +69,10 @@ CREATE TABLE MaterialToProduct (
 CREATE TABLE ProductToOrder(
     ProductId int,
     OrderId int,
+    OrderQuantity int,
     PRIMARY KEY (ProductId, OrderId),
     FOREIGN KEY (ProductId) REFERENCES Product(Id),
     FOREIGN KEY (OrderId) REFERENCES ProductOrder(Id));
-
-
-
-
-
 
 
 --- Insert Data to tables
