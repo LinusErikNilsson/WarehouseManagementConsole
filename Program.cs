@@ -24,8 +24,9 @@ class Program
 
             Console.WriteLine("1. Materials");
             Console.WriteLine("2. MaterialStorage");
-            Console.WriteLine("3. Remove an item in the Warehouse");
-            Console.WriteLine("4. Add a new supplier");
+            Console.WriteLine("3. ");
+            Console.WriteLine("4. ");
+            Console.WriteLine("5. Customers");
             Console.WriteLine("q. Exit the program");
             Console.ResetColor();
             Console.WriteLine();
@@ -34,7 +35,7 @@ class Program
 
             switch (Console.ReadLine())
             {
-                case "1":
+                case "1": // Materials menu
                     Console.Clear();
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. List all Materials");
@@ -141,7 +142,7 @@ class Program
                             Console.WriteLine("----------------------------------------");
                             Console.ResetColor();
 
-                            Console.Write("Please enter the name of the Material you want to update: ");
+                            Console.Write("Please enter the name of the Material you want to delete: ");
                             string? inputMaterialDeleteString = Console.ReadLine();
 
                             IEnumerable<Material> deleteMaterialQuery = sqldbconnection.Query<Material>("SELECT id, name FROM Material WHERE name LIKE '%' + @Name + '%'",
@@ -174,7 +175,7 @@ class Program
                     }
 
                     break;
-                case "2":
+                case "2": // Storage Menu
                     Console.Clear();
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. Add Material to Storage place");
@@ -253,7 +254,6 @@ class Program
                             Console.ReadLine();
 
                             break;
-
                         case "3":
                             Console.Clear();
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -294,29 +294,180 @@ class Program
                             int inputUpdatedMaterialQuantity = Convert.ToInt32(Console.ReadLine());
 
                             sqldbconnection.Execute("UPDATE MaterialStorage SET Aisle = @Aisle, Shelf = @Shelf, Quantity = @Quantity WHERE Id = @MaterialId ",
-                            new MaterialStorage {MaterialId = inputUpdateMaterialStorageId, Aisle = inputUpdatedMaterialAisle, Shelf = inputUpdatedMaterialShelf, Quantity = inputUpdatedMaterialQuantity} );
+                            new MaterialStorage { MaterialId = inputUpdateMaterialStorageId, Aisle = inputUpdatedMaterialAisle, Shelf = inputUpdatedMaterialShelf, Quantity = inputUpdatedMaterialQuantity });
 
                             Console.WriteLine("Successfully updated. Press any key to continue.");
                             Console.ReadLine();
                             break;
                     }
 
-
-
-
                     break;
-                case "4":
+                case "3": //
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("You have selected to add a new order");
                     Console.ResetColor();
                     break;
-                case "5":
+                case "4": // 
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("You have selected to add a new supplier");
                     Console.ResetColor();
                     break;
+                case "5": // Customer
+                    Console.Clear();
+                    Console.Clear();
+                    Console.WriteLine("Select an option");
+                    Console.WriteLine("1. List all Customers"); // KLAR
+                    Console.WriteLine("2. Add a new Customer"); // KLAR
+                    Console.WriteLine("3. Update a Customer"); // KLAR
+                    Console.WriteLine("4. Delete a Customer"); // KLAR
+
+                    switch (Console.ReadLine())
+                    {
+                        case "1":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Listing all customer:");
+                            Console.WriteLine("----------------------------------------");
+
+                            IEnumerable<Customer> result = sqldbconnection.Query<Customer>("SELECT * FROM Customer");
+
+                            foreach (Customer customer in result)
+                            {
+                                Console.WriteLine($"Id: {customer.Id} Name: {customer.Surname} {customer.Lastname}.  Address: {customer.Address}  Email: {customer.Email}  Phonenumber: {customer.Phonenumber}");
+                            }
+                            Console.ResetColor();
+                            Console.ReadLine();
+                            break;
+
+                        case "2":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Add a new customer");
+                            Console.WriteLine("----------------------------------------");
+
+                            Console.Write("Please enter the Name of your new customer: ");
+                            string? inputSurName = Console.ReadLine();
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Lastname of your new customer: ");
+                            string? inputLastName = Console.ReadLine();
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Address of your new customer: ");
+                            string? inputAdress = Console.ReadLine();
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Email of your new customer: ");
+                            string? inputEmail = Console.ReadLine();
+                            Console.WriteLine();
+
+                            Console.Write("Please enter the Phonenumber of your new customer: ");
+                            string inputPhonenumber = Console.ReadLine();
+
+                            sqldbconnection.Execute("INSERT INTO Customer (Surname, Lastname, Address, Email, Phonenumber) VALUES (@Surname, @Lastname, @Address, @Email, @Phonenumber)",
+                                new Customer { Surname = inputSurName, Lastname = inputLastName, Address = inputAdress, Email = inputEmail, Phonenumber = inputPhonenumber });
+                            Console.WriteLine();
+                            Console.Write("Customer added successfully - Press any key to continue...");
+                            Console.ReadKey();
+                            break;
+
+                        case "3":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Update a Customer");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            Console.Write("Please enter the name of the Customer you want to update: ");
+                            string? inputUpdateCustomer = Console.ReadLine();
+
+                            IEnumerable<Customer> updateCustomerQuery = sqldbconnection.Query<Customer>("SELECT customer.id, surname, lastname, address, email, phonenumber FROM Customer WHERE Surname LIKE '%' + @Surname + '%' ",
+                                new Customer { Surname = inputUpdateCustomer });
+
+                            foreach (Customer customer in updateCustomerQuery)
+                            {
+                                Console.WriteLine($"Id: {customer.Id} Name: {customer.Surname} {customer.Lastname}  Address: {customer.Address}  Email: {customer.Email}  Phonenumber: {customer.Phonenumber}");
+                            }
+
+                            if (updateCustomerQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No customers found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.WriteLine("Please the ID for the Customer you would like to change:");
+                            int inputUpdateCustomerId = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine("Please enter the new Surname:");
+                            string? inputUpdatedSurName = Console.ReadLine();
+
+                            Console.WriteLine("Please enter the new Lastname:");
+                            string? inputUpdatedLastname = Console.ReadLine();
+
+                            Console.WriteLine("Please enter the new Address:");
+                            string? inputUpdatedAddress = Console.ReadLine();
+
+
+                            Console.WriteLine("Please enter the new Email:");
+                            string? inputUpdatedEmail = Console.ReadLine();
+
+                            Console.WriteLine("Please enter the new Phonenumber:");
+                            string? inputUpdatedPhonenumber = Console.ReadLine();
+
+                            sqldbconnection.Execute("UPDATE Customer SET Surname = @Surname, Lastname = @Lastname, Address = @Address, Email = @Email, Phonenumber = @Phonenumber WHERE Id = @Id ",
+                            new Customer { Id = inputUpdateCustomerId, Surname = inputUpdatedSurName, Lastname = inputUpdatedLastname, Address = inputUpdatedAddress, Email = inputUpdatedEmail, Phonenumber = inputUpdatedPhonenumber });
+
+                            Console.WriteLine("Successfully updated. Press any key to continue.");
+                            Console.ReadLine();
+                            break;
+
+                        case "4":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Delete a Customer");
+                            Console.WriteLine("----------------------------------------");
+                            Console.ResetColor();
+
+                            Console.Write("Please enter the name of the Customer you want to delete ");
+                            string? inputCustomerDeleteString = Console.ReadLine();
+
+                            IEnumerable<Customer> deleteCustomerQuery = sqldbconnection.Query<Customer>("SELECT customer.id, surname, lastname, address, email, phonenumber FROM Customer WHERE Surname LIKE '%' + @Surname + '%' ",
+                                new Customer { Surname = inputCustomerDeleteString });
+
+                            foreach (Customer customer in deleteCustomerQuery)
+                            {
+                                Console.WriteLine($"Id: {customer.Id} Name: {customer.Surname} {customer.Lastname}  Address: {customer.Address}  Email: {customer.Email}  Phonenumber: {customer.Phonenumber}");
+                            }
+
+                            if (deleteCustomerQuery.Count() == 0)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("No customers found");
+                                Console.ResetColor();
+                                Console.ReadLine();
+                                break;
+                            }
+
+                            Console.Write("Please enter the Id you wish to delete: ");
+                            int inputDeletedCustomerId = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+                            Console.Clear();
+                            sqldbconnection.Execute("DELETE FROM Customer WHERE Id = @Id",
+                                new Customer { Id = inputDeletedCustomerId });
+                            Console.WriteLine("Customer deleted successfully - Press any key to continue...");
+                            Console.ReadLine();
+
+                            break;
+                    }
+
+                    break;
+
+
                 case "q":
                     Console.Clear();
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -337,9 +488,5 @@ class Program
             }
 
         }
-
-
-
-
     }
 }

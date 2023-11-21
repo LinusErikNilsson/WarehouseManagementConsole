@@ -2,12 +2,12 @@ namespace Models;
 
 public class Customer
 {
-    int Id {get; set;}
-    string ?Surname {get; set;}
-    string ?Lastname {get; set;}
-    string ?Address {get; set;}
-    string ?Email {get; set;}
-    string ?Phonenumber {get; set;}
-    
+    public int Id {get; set;}
+    public string ?Surname {get; set;}
+    public string ?Lastname {get; set;}
+    public string ?Address {get; set;}
+    public string ?Email {get; set;}
+    public string ?Phonenumber {get; set;}
+
 
 }

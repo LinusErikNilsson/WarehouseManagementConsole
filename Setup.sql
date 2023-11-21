@@ -33,11 +33,11 @@ CREATE TABLE Customer(
 
 CREATE TABLE ProductOrder(
     Id int IDENTITY PRIMARY KEY NOT NULL, 
-	CustomerId varchar(50), 
+	CustomerId int, 
 	IsPacked bit NOT NULL,
 	IsSent bit NOT NULL,
 	IsDelivered bit NOT NULL,
-    CONSTRAINT FK_Product_ProductOrder FOREIGN KEY (CustomerID)
+    CONSTRAINT FK_Product_ProductOrder FOREIGN KEY (CustomerId)
     REFERENCES Customer(Id) );
 
 CREATE TABLE ProductStorage (
@@ -49,7 +49,7 @@ CREATE TABLE ProductStorage (
     CONSTRAINT FK_Product_ProductStorage FOREIGN KEY (ProductId)
     REFERENCES Product(Id) );
 
-   CREATE TABLE ProductQueueForStorage(
+CREATE TABLE ProductQueueForStorage(
     id int IDENTITY Primary KEY NOT NULL,
     ProductId int,
     Quantity int,
@@ -96,3 +96,6 @@ VALUES(1,1,1,0);
 INSERT INTO Product(Name)
 VALUES('Stainless Nut');
 
+--Customer
+INSERT INTO Customer(Surname, LastName, Address, Email, Phonenumber)
+VALUES ( 'Felix', 'Andersson', 'Torggatan 9', 'FA@hotmail.com', 0705884643);
