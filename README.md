@@ -20,4 +20,7 @@ Vi har använt oss av github där repot finns, och med git för att synka våra ändr
 När vi designade databasen använde vi oss först av OneNote, och sedan renskissade vi det i en design-app på webben.
 Löpande under projektet har vi byggt applikationen från databasen, och ifall vi upptäckt fel i databas designen så har vi direkt undersökt felet och löst det - för att sedan fortsätta med applikationen.
 
+ I Projektet finns ./Diagram.png är en bild på vår databasen som vi har använt oss av: https://github.com/LinusErikNilsson/WarehouseManagementConsole/blob/master/Diagram.png 
+ Det finns även en Setup.sql fil där våra SQL-script för att skapa tabeller och data finns. https://github.com/LinusErikNilsson/WarehouseManagementConsole/blob/master/Setup.sql Detta var ett bra sätt att dela SQL-kod mellan oss, eftersom vi jobbade i våra lokala databaser och behövde säkerhetställa att vi hade identiska databaser.
+
 
