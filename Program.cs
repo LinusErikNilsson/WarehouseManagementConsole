@@ -24,8 +24,8 @@ class Program
 
             Console.WriteLine("1. Materials");
             Console.WriteLine("2. MaterialStorage");
-            Console.WriteLine("3. ");
-            Console.WriteLine("4. ");
+            Console.WriteLine("3. Production ");
+            Console.WriteLine("4. Customer Orders ");
             Console.WriteLine("5. Customers");
             Console.WriteLine("q. Exit the program");
             Console.ResetColor();
