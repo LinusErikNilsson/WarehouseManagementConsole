@@ -189,6 +189,7 @@ class Program
                     Console.WriteLine("3. Move Material within Storage");
                     Console.WriteLine("4. Move Material to ProductionQueue");
                     Console.WriteLine("5. Show Products in ProductStorage");
+                    Console.WriteLine("6. Move Product to ProductStorage from ProductionQueue - OUTBOUND");
 
                     switch (Console.ReadLine())
                     {
@@ -386,6 +387,48 @@ class Program
                             Console.ReadLine();
 
                             break;
+
+                        case "6":
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Move Product to Product Storage From Production (OUTBOUND)");
+                            Console.WriteLine("----------------------------------------");
+                            Console.WriteLine("Listing Products in ProductionQueueForStorage - OUTBOUND");
+                            Console.ResetColor();
+
+                            IEnumerable<ProductQueueForStorage> productQueueForStorageQuery = sqldbconnection.Query<ProductQueueForStorage>("SELECT ProductQueueForStorage.id, ProductQueueForStorage.ProductId, ProductQueueForStorage.Quantity, Product.Name FROM ProductQueueForStorage INNER JOIN Product ON ProductQueueForStorage.ProductId = Product.Id");
+
+                            foreach (ProductQueueForStorage productqueueforstorage in productQueueForStorageQuery)
+                            {
+                                Console.WriteLine($"ProductQueueForStorageID: {productqueueforstorage.id} | ProductID: {productqueueforstorage.productid} | ProductName: {productqueueforstorage.name} | QTY: {productqueueforstorage.quantity}");
+                            }
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.Write("Please enter the ID of the product you wish to move to Product Storage: ");
+                            Console.ResetColor();
+                            int userProductmovetoStorageSelection = Convert.ToInt32(Console.ReadLine());
+
+                            IEnumerable<ProductQueueForStorage> productQueueForStorageQuery2 = sqldbconnection.Query<ProductQueueForStorage>("SELECT ProductQueueForStorage.id, ProductQueueForStorage.ProductId, ProductQueueForStorage.Quantity, Product.Name FROM ProductQueueForStorage INNER JOIN Product ON ProductQueueForStorage.ProductId = Product.Id WHERE ProductQueueForStorage.id = @id",
+                                new ProductQueueForStorage { id = userProductmovetoStorageSelection });
+
+                            int productidForStorage = productQueueForStorageQuery2.Select(x => x.productid).FirstOrDefault();
+                            int quantityForStorage = productQueueForStorageQuery2.Select(x => x.quantity).FirstOrDefault();
+
+                            Console.WriteLine();
+                            Console.Write("Please enter the Aisle you wish to move the product to: ");
+                            int inputProductAisle = Convert.ToInt32(Console.ReadLine());
+                            Console.WriteLine();
+                            Console.Write("Please enter the Shelf you wish to move the product to: ");
+                            int inputProductShelf = Convert.ToInt32(Console.ReadLine());
+
+                            //Move the product to the ProductStorage table
+                            sqldbconnection.Execute("INSERT INTO ProductStorage (ProductId, Aisle, Shelf, Quantity) VALUES (@productid, @aisle, @shelf, @quantity)",
+                                new ProductStorage { ProductId = productidForStorage, Aisle = inputProductAisle, Shelf = inputProductShelf, Quantity = quantityForStorage });
+
+                            //Delete the Item in ProductionQueueToStorage
+                            sqldbconnection.Execute("DELETE FROM ProductQueueForStorage WHERE Id = @id",
+                                new ProductQueueForStorage { id = userProductmovetoStorageSelection });
+                            break;
                     }
 
                     break;
@@ -455,11 +498,14 @@ class Program
 
                             Console.WriteLine();
                             Console.WriteLine("Listing Materials that can be used to produce the product: ");
+                            Console.WriteLine();
+                            Console.ResetColor();
                             foreach (MaterialToProduct_Prod materialtoproduct_prod in getmaterialUsedForProduct)
                             {
                                 Console.WriteLine($"ProductID: {materialtoproduct_prod.productId} MaterialID: {materialtoproduct_prod.materialId} MaterialName: {materialtoproduct_prod.name}");
                             }
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine();
                             Console.WriteLine("Press any key to continue...");
                             Console.ReadLine();
                             Console.ResetColor();
@@ -477,6 +523,7 @@ class Program
                                 Console.WriteLine();
                                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                                 Console.WriteLine("Listing all material availible in productionqueue: ");
+                                Console.WriteLine();
                                 Console.ResetColor();
                                 foreach (ProductionQueue productionqueue in productionQuery)
                                 {
@@ -485,7 +532,9 @@ class Program
 
 
                                 Console.WriteLine();
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
                                 Console.WriteLine("Please enter the ProductionQueueID of the Queued product you wish to start production on: ");
+                                Console.ResetColor();
                                 int inputProductionQueueId = Convert.ToInt32(Console.ReadLine());
                                 Console.WriteLine();
 
