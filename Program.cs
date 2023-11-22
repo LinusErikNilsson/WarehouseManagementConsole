@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using Models;
 using System.ComponentModel;
+using System.Security.Cryptography.X509Certificates;
 
 
 class Program
@@ -429,48 +430,103 @@ class Program
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Start Production of a Product");
                             Console.WriteLine("-------------------------------------------------");
-                            Console.WriteLine("Listing availible material at ProductionQueue: ");
+                            Console.WriteLine("Listing Products that can be produced: ");
                             Console.WriteLine();
                             Console.ResetColor();
 
-                            IEnumerable<ProductionQueue> productionQueueQuery = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id");
+                            //List to temporarly store materials to be used in production:
+                            List<MaterialProductItem> tempItemList = new List<MaterialProductItem>();
 
-                            foreach (ProductionQueue productionQueue in productionQueueQuery)
+                            //GET LIST OF PRODUCTS in Product
+
+                            IEnumerable<Product> productQuery = sqldbconnection.Query<Product>("SELECT id, name FROM Product");
+                            foreach (Product product in productQuery)
                             {
-                                Console.WriteLine($"Id: {productionQueue.id} MaterialId: {productionQueue.materialId} Quantity: {productionQueue.quantity} Priority: {productionQueue.priority} MaterialName: {productionQueue.name}");
+                                Console.WriteLine($"Id: {product.Id} Name: {product.Name}");
                             }
-                            Console.WriteLine();
-                            Console.WriteLine("Please enter the ProductionQueueID of the Queued product you wish to start production on: ");
-                            int inputProductionQueueId = Convert.ToInt32(Console.ReadLine());
-                            Console.WriteLine();
 
-                            IEnumerable<ProductionQueue> productionQueueQuery2 = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id WHERE ProductionQueue.id = @id",
-                                                               new ProductionQueue { id = inputProductionQueueId });
+                            Console.WriteLine();
+                            Console.WriteLine("Please add the product you wish to produce: ");
+                            int userProductSelection = Convert.ToInt32(Console.ReadLine());
 
-                            int materialIdForProduction = productionQueueQuery2.Select(x => x.materialId).FirstOrDefault();
-                            int quantityForProduction = productionQueueQuery2.Select(x => x.quantity).FirstOrDefault();
-                            string? materialnameForProduction = productionQueueQuery2.Select(x => x.name).FirstOrDefault();
+                            //Get list of Materials to be used to produce the product:
+                            IEnumerable<MaterialToProduct_Prod> getmaterialUsedForProduct = sqldbconnection.Query<MaterialToProduct_Prod>("SELECT MaterialToProduct.ProductID, MaterialToProduct.MaterialID, Material.name FROM MaterialToProduct INNER JOIN Material ON MaterialToProduct.MaterialID = Material.id WHERE ProductID = @productId;",
+                                new MaterialToProduct_Prod { productId = userProductSelection });
+
+                            Console.WriteLine();
+                            Console.WriteLine("Listing Materials that can be used to produce the product: ");
+                            foreach (MaterialToProduct_Prod materialtoproduct_prod in getmaterialUsedForProduct)
+                            {
+                                Console.WriteLine($"ProductID: {materialtoproduct_prod.productId} MaterialID: {materialtoproduct_prod.materialId} MaterialName: {materialtoproduct_prod.name}");
+                            }
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadLine();
+                            Console.ResetColor();
+
+                            int noofmaterials = getmaterialUsedForProduct.Count();
+                            Console.WriteLine($"Noof materials: {noofmaterials}");
+                            int i = 0;
+
+
+
+                            while (i < noofmaterials)
+                            {
+                                IEnumerable<ProductionQueue> productionQuery = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id");
+
+                                Console.WriteLine();
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                Console.WriteLine("Listing all material availible in productionqueue: ");
+                                Console.ResetColor();
+                                foreach (ProductionQueue productionqueue in productionQuery)
+                                {
+                                    Console.WriteLine($"Id: {productionqueue.id} MaterialId: {productionqueue.materialId} Quantity: {productionqueue.quantity} Priority: {productionqueue.priority} MaterialName: {productionqueue.name}");
+                                }
+
+
+                                Console.WriteLine();
+                                Console.WriteLine("Please enter the ProductionQueueID of the Queued product you wish to start production on: ");
+                                int inputProductionQueueId = Convert.ToInt32(Console.ReadLine());
+                                Console.WriteLine();
+
+                                IEnumerable<ProductionQueue> productionQueueQuery2 = sqldbconnection.Query<ProductionQueue>("SELECT ProductionQueue.id, ProductionQueue.MaterialId, ProductionQueue.Quantity, ProductionQueue.Priority, Material.Name FROM ProductionQueue INNER JOIN Material ON ProductionQueue.MaterialId = Material.Id WHERE ProductionQueue.id = @id",
+                                                                   new ProductionQueue { id = inputProductionQueueId });
+
+                                int materialIdForProduction = productionQueueQuery2.Select(x => x.materialId).FirstOrDefault();
+                                int quantityForProduction = productionQueueQuery2.Select(x => x.quantity).FirstOrDefault();
+                                string? materialnameForProduction = productionQueueQuery2.Select(x => x.name).FirstOrDefault();
+
+                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                var tempItem = new MaterialProductItem() { materialIdItem = materialIdForProduction, materialquantityItem = quantityForProduction, materialNameItem = materialnameForProduction };
+                                tempItemList.Add(tempItem);
+
+                                foreach (MaterialProductItem materialproductitem in tempItemList)
+                                {
+                                    Console.WriteLine("Material Added: ");
+                                    Console.WriteLine($"{materialproductitem.materialNameItem} | {materialproductitem.materialIdItem} | {materialproductitem.materialquantityItem}");
+                                }
+
+                                sqldbconnection.Execute("DELETE FROM ProductionQueue WHERE Id = @id",
+                                                                       new ProductionQueue { id = inputProductionQueueId });
+
+                                Console.ResetColor();
+                                Console.WriteLine("Press any key to continue...");
+                                Console.ReadLine();
+                                i++;
+                            }
+
+                            Console.Clear();
+                            Console.WriteLine("Creating new Products");
+                            int minQuantity = tempItemList.Min(item => item.materialquantityItem);
+                            Console.WriteLine($" QTY to Produce: {minQuantity}");
+
+                            sqldbconnection.Execute("INSERT INTO ProductQueueForStorage (ProductId, Quantity) VALUES (@productid, @quantity)",
+                                new ProductQueueForStorage { productid = userProductSelection, quantity = minQuantity });
 
                             Console.ForegroundColor = ConsoleColor.DarkYellow;
-                            Console.WriteLine($"INFO | {materialnameForProduction} with Quantity {quantityForProduction} is selected for Production");
+                            Console.WriteLine("Products created and placed in ProductQueueForStorage - press any key to continue");
                             Console.ResetColor();
-                            Console.WriteLine();
                             Console.ReadLine();
-                            
-
-
-                            //Lista Produkter som använder materialet som kan tillverkas TODO/Review
-                            IEnumerable<MaterialToProduct> materialToProductQuery = sqldbconnection.Query<MaterialToProduct>("SELECT MaterialToProduct.ProductID, MaterialToProduct.MaterialID, Material.name, Product.Name FROM MaterialToProduct INNER JOIN Material ON MaterialToProduct.MaterialId = Material.Id INNER JOIN Product ON MaterialToProduct.ProductID = Product.Id WHERE MaterialToProduct.ProductId = @productId",
-                                                                                              new MaterialToProduct { productId = materialIdForProduction });
-
-                            foreach (MaterialToProduct materialToProduct in materialToProductQuery)
-                            {
-                                Console.WriteLine($"ProductID: {materialToProduct.productId} MaterialID: {materialToProduct.materialId} MaterialName: {materialToProduct.materialname} ProductName: {materialToProduct.productname}");
-                            };
-                            Console.ReadLine();
-
-                            //Skapa Nya Produkter
-
                             break;
                     }
 
