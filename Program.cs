@@ -24,7 +24,7 @@ class Program
             Console.WriteLine("Please enter the key for an option in the menu below, and press ENTER:");
 
             Console.WriteLine("1. Materials");
-            Console.WriteLine("2. MaterialStorage");
+            Console.WriteLine("2. Storage/Warehouse Operations ");
             Console.WriteLine("3. Production ");
             Console.WriteLine("4. Customer Orders ");
             Console.WriteLine("5. Customers");
@@ -181,8 +181,11 @@ class Program
                     }
 
                     break;
-                case "2": // Storage Menu
+                case "2": // Storage/Warehouse Operations Menu
                     Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine("Storage/Warehouse Operation Menu");
+                    Console.WriteLine("----------------------------------------");
                     Console.WriteLine("Select an option");
                     Console.WriteLine("1. Add Material to Storage place");
                     Console.WriteLine("2. List all Material in Storage");
@@ -190,6 +193,10 @@ class Program
                     Console.WriteLine("4. Move Material to ProductionQueue");
                     Console.WriteLine("5. Show Products in ProductStorage");
                     Console.WriteLine("6. Move Product to ProductStorage from ProductionQueue - OUTBOUND");
+                    Console.ResetColor();
+
+                    Console.WriteLine();
+                    Console.Write("Your Selection: ");
 
                     switch (Console.ReadLine())
                     {
