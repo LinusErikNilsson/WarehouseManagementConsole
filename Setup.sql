@@ -1,5 +1,7 @@
 ﻿--- Note Database 'master' is used
 
+--- Please run this script with one CREATE query at a time to ensure all connections are added in correct sequence.
+
 -- Create Tables and Constraints
 CREATE TABLE Material(id int IDENTITY PRIMARY KEY NOT NULL, name VARCHAR(50));
 
@@ -57,7 +59,7 @@ CREATE TABLE ProductQueueForStorage(
     REFERENCES Product(Id) );
 
 
--- Kopplingstabell MaterialToProduct
+-- Connectiontable MaterialToProduct
 CREATE TABLE MaterialToProduct (
     ProductID int,
      MaterialID int,
@@ -65,7 +67,7 @@ CREATE TABLE MaterialToProduct (
      FOREIGN KEY (ProductId) REFERENCES Product(Id),
      FOREIGN KEY (MaterialId) REFERENCES Material(Id));
 
----Kopplingstabell ProductToOrder
+---Connectiontable ProductToOrder
 CREATE TABLE ProductToOrder(
     ProductId int,
     OrderId int,
@@ -93,7 +95,23 @@ INSERT INTO Product(Name)
 VALUES('Stainless Nut');
 INSERT INTO Product(Name)
 VALUES('Iron Nut');
+INSERT INTO Product(Name)
+VALUES('Copper-Iron Alloy');
 
 --Customer
 INSERT INTO Customer(Surname, LastName, Address, Email, Phonenumber)
 VALUES ( 'Felix', 'Andersson', 'Torggatan 9', 'FA@hotmail.com', 0705884643);
+
+--MaterialToProduct
+--Note, this example is a product that contains 2 materials.
+    INSERT INTO MaterialToProduct(ProductID, MaterialID)
+    VALUES(3,2)
+    INSERT INTO MaterialToProduct(ProductID, MaterialID)
+    VALUES(3,3)
+
+--Below is an example of two products that contains 1 material each.
+    INSERT INTO MaterialToProduct(ProductID, MaterialID)
+    VALUES(1,1);
+
+    INSERT INTO MaterialToProduct(ProductID, MaterialID)
+    VALUES(2,2);
